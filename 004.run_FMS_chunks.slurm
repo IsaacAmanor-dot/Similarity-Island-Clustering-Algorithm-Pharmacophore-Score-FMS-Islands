@@ -1,22 +1,12 @@
 #!/bin/bash
 
-#SBATCH --job-name=FMS_Islands
-#SBATCH --partition=long-28core
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=28
-#SBATCH --time=2-00:00:00
-#SBATCH --output=FMS_slurm_%A_%a.out
-
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
 source "${SCRIPT_DIR}/000.config.sh"
 
 if [[ ! -s "${TASK_LIST}" ]]; then
     echo "ERROR: Missing task list: ${TASK_LIST}"
-    echo "Run 002.make_task_list.sh first."
     exit 1
 fi
 
@@ -32,24 +22,23 @@ ARRAY_TASK_ID="${SLURM_ARRAY_TASK_ID:-1}"
 START_TASK=$(( (ARRAY_TASK_ID - 1) * TASKS_PER_NODE + 1 ))
 END_TASK=$(( START_TASK + TASKS_PER_NODE - 1 ))
 
-if (( START_TASK > TOTAL_TASKS )); then
-    echo "ERROR: Chunk ${ARRAY_TASK_ID} begins beyond the task list."
-    echo "Total tasks: ${TOTAL_TASKS}"
-    exit 1
-fi
-
 if (( END_TASK > TOTAL_TASKS )); then
     END_TASK=${TOTAL_TASKS}
+fi
+
+if (( START_TASK > TOTAL_TASKS )); then
+    echo "ERROR: Chunk ${ARRAY_TASK_ID} starts beyond task ${TOTAL_TASKS}."
+    exit 1
 fi
 
 echo
 echo "FMS Similarity Island chunk"
 echo
-echo "Array ID:    ${ARRAY_TASK_ID}"
-echo "Total tasks: ${TOTAL_TASKS}"
-echo "Task range:  ${START_TASK}-${END_TASK}"
-echo "Node:        $(hostname)"
-echo "Started:     $(date)"
+echo "SLURM job ID: ${SLURM_JOB_ID:-direct}"
+echo "Array ID:     ${ARRAY_TASK_ID}"
+echo "Node:         $(hostname)"
+echo "Task range:   ${START_TASK}-${END_TASK}"
+echo "Started:      $(date)"
 echo
 
 PIDS=()
@@ -79,13 +68,11 @@ for INDEX in "${!PIDS[@]}"; do
 done
 
 echo
-echo "Chunk finished: $(date)"
+echo "Finished: $(date)"
 echo "Tasks launched: ${#TASK_IDS[@]}"
-echo "Failures:       ${FAILURES}"
+echo "Failures: ${FAILURES}"
 echo
 
 if (( FAILURES > 0 )); then
     exit 1
 fi
-
-exit 0
