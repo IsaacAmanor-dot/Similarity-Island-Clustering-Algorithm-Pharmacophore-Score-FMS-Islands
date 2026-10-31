@@ -4,16 +4,7 @@ CONFIG_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 WORK_ROOT="${CONFIG_DIR}"
 
-FMS_CUTOFFS=(
-    0
-    1
-    3
-    5
-    7
-    10
-    15
-    20
-)
+FMS_CUTOFFS=(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25)
 
 DOCK_ROOT="/gpfs/projects/rizzo/iamanor/DOCK6_Development/Similarity_Island/dock6_dev"
 DOCK_BIN="${DOCK_ROOT}/bin/dock6"
